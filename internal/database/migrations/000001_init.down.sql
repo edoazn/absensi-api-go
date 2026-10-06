@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS attendances;
+DROP TABLE IF EXISTS schedules;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS class_user;
+DROP TABLE IF EXISTS classes;
+DROP TABLE IF EXISTS users;

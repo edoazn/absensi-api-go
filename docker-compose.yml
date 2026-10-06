@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-absensi_go}
+      TZ: Asia/Jakarta
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      APP_ENV: production
+      APP_PORT: "8080"
+      APP_TIMEZONE: Asia/Jakarta
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      DB_DATABASE: ${DB_DATABASE:-absensi_go}
+      JWT_SECRET: ${JWT_SECRET:?isi JWT_SECRET minimal 32 karakter}
+      SEED_ON_START: ${SEED_ON_START:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+
+volumes:
+  dbdata:

@@ -1,0 +1,9 @@
+.env
+*.exe
+*.test
+bin/
+tmp/
+*.out
+
+# SPA build output
+web/dist/

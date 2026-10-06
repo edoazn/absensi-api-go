@@ -1,0 +1,1029 @@
+basePath: /api/v1
+definitions:
+  api.Envelope:
+    properties:
+      data: {}
+      errors: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  dto.AttendanceRequest:
+    properties:
+      accuracy:
+        maximum: 10000
+        minimum: 0
+        type: number
+      attendance_code:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      method:
+        enum:
+        - geolocation
+        - qr_code
+        - attendance_code
+        type: string
+      qr_token:
+        type: string
+      schedule_id:
+        type: integer
+    required:
+    - method
+    - schedule_id
+    type: object
+  dto.ClassRequest:
+    properties:
+      academic_year:
+        type: string
+      name:
+        type: string
+      user_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - academic_year
+    - name
+    type: object
+  dto.CourseRequest:
+    properties:
+      course_code:
+        type: string
+      course_name:
+        type: string
+      lecturer_name:
+        type: string
+      location_room:
+        type: string
+    required:
+    - course_code
+    - course_name
+    - lecturer_name
+    type: object
+  dto.GenerateCodeRequest:
+    properties:
+      minutes_valid:
+        maximum: 1440
+        minimum: 1
+        type: integer
+    type: object
+  dto.LocationRequest:
+    properties:
+      latitude:
+        maximum: 90
+        minimum: -90
+        type: number
+      longitude:
+        maximum: 180
+        minimum: -180
+        type: number
+      name:
+        type: string
+      radius:
+        type: number
+    required:
+    - latitude
+    - longitude
+    - name
+    - radius
+    type: object
+  dto.LoginRequest:
+    properties:
+      identity_number:
+        type: string
+      password:
+        type: string
+    required:
+    - identity_number
+    - password
+    type: object
+  dto.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  dto.ScheduleRequest:
+    properties:
+      class_id:
+        type: integer
+      course_id:
+        type: integer
+      end_time:
+        type: string
+      is_recurring:
+        type: boolean
+      location_id:
+        type: integer
+      recurrence_end:
+        type: string
+      repeat_days:
+        items:
+          type: integer
+        type: array
+      start_time:
+        type: string
+    required:
+    - class_id
+    - course_id
+    - end_time
+    - location_id
+    - start_time
+    type: object
+  dto.UserRequest:
+    properties:
+      class_ids:
+        items:
+          type: integer
+        type: array
+      email:
+        type: string
+      identity_number:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        enum:
+        - admin
+        - mahasiswa
+        type: string
+    required:
+    - identity_number
+    - name
+    - role
+    type: object
+info:
+  contact: {}
+  description: REST API sistem absensi mahasiswa berbasis geolocation. Semua respons
+    memakai envelope {success, data, message, errors}.
+  title: Absensi Mahasiswa API
+  version: "1.0"
+paths:
+  /admin/dashboard:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Statistik dashboard admin
+      tags:
+      - 'Admin: Dashboard'
+  /attendance:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data absensi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Kirim absensi (geolocation / qr_code / attendance_code)
+      tags:
+      - Attendance
+  /attendance/history:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Riwayat absensi mahasiswa
+      tags:
+      - Attendance
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Kredensial
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      summary: Login dengan NIM/NIP
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Logout (revoke refresh + blacklist access)
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      summary: Rotasi refresh token
+      tags:
+      - Auth
+  /classes:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Daftar kelas
+      tags:
+      - 'Admin: Classes'
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Kelas
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClassRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Buat kelas
+      tags:
+      - 'Admin: Classes'
+  /classes/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID kelas
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Hapus kelas
+      tags:
+      - 'Admin: Classes'
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID kelas
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Kelas
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClassRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Ubah kelas
+      tags:
+      - 'Admin: Classes'
+  /courses:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Daftar mata kuliah
+      tags:
+      - 'Admin: Courses'
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Mata kuliah
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CourseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Buat mata kuliah
+      tags:
+      - 'Admin: Courses'
+  /courses/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID mata kuliah
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Hapus mata kuliah
+      tags:
+      - 'Admin: Courses'
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID mata kuliah
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Mata kuliah
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CourseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Ubah mata kuliah
+      tags:
+      - 'Admin: Courses'
+  /locations:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Daftar lokasi
+      tags:
+      - 'Admin: Locations'
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Lokasi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LocationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Buat lokasi
+      tags:
+      - 'Admin: Locations'
+  /locations/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID lokasi
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Lokasi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Ubah lokasi
+      tags:
+      - 'Admin: Locations'
+  /me:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Profil user login
+      tags:
+      - Auth
+  /reports/attendance:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      - description: ID jadwal
+        in: query
+        name: schedule_id
+        type: integer
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (1-100)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Laporan absensi (paginated)
+      tags:
+      - 'Admin: Reports'
+  /reports/attendance/export:
+    get:
+      parameters:
+      - description: YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      - description: ID jadwal
+        in: query
+        name: schedule_id
+        type: integer
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Export laporan absensi ke Excel
+      tags:
+      - 'Admin: Reports'
+  /schedules:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter kelas
+        in: query
+        name: class_id
+        type: integer
+      - description: Filter mata kuliah
+        in: query
+        name: course_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Daftar jadwal
+      tags:
+      - 'Admin: Schedules'
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Jadwal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Buat jadwal
+      tags:
+      - 'Admin: Schedules'
+  /schedules/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Hapus jadwal (soft delete)
+      tags:
+      - 'Admin: Schedules'
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Detail jadwal
+      tags:
+      - 'Admin: Schedules'
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jadwal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Ubah jadwal
+      tags:
+      - 'Admin: Schedules'
+  /schedules/{id}/generate-code:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Masa berlaku (menit, 1-1440)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.GenerateCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Generate kode absensi
+      tags:
+      - 'Admin: Schedules'
+  /schedules/{id}/generate-qr:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Rotate token QR jadwal
+      tags:
+      - 'Admin: Schedules'
+  /schedules/{id}/qr.png:
+    get:
+      parameters:
+      - description: ID jadwal
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Gambar QR PNG jadwal
+      tags:
+      - 'Admin: Schedules'
+  /schedules/today:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Jadwal hari ini
+      tags:
+      - Attendance
+  /users:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter role (admin|mahasiswa)
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Daftar pengguna
+      tags:
+      - 'Admin: Users'
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Pengguna
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Buat pengguna
+      tags:
+      - 'Admin: Users'
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID user
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Hapus pengguna
+      tags:
+      - 'Admin: Users'
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID user
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Pengguna
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Envelope'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/api.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Ubah pengguna
+      tags:
+      - 'Admin: Users'
+securityDefinitions:
+  BearerAuth:
+    description: 'Format: "Bearer {access_token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
