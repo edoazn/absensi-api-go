@@ -128,3 +128,8 @@
     @apply font-sans;
     }
 }
+:root {
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --header-height: calc(var(--spacing) * 14);
+}
