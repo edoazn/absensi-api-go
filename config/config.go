@@ -86,22 +86,29 @@ func (c *Config) IsProd() bool {
 }
 
 func (c *Config) MySQLDSN() string {
+	args := os.Getenv("DB_ARGS")
+	if args != "" {
+		args = "&" + args
+	}
 	return fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=%s",
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=%s%s",
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName,
-		url.QueryEscape(c.Timezone.String()),
+		url.QueryEscape(c.Timezone.String()), args,
 	)
 }
 
 func (c *Config) MySQLServerDSN(multiStatements bool) string {
-	extra := ""
+	args := os.Getenv("DB_ARGS")
+	if args != "" {
+		args = "&" + args
+	}
 	if multiStatements {
-		extra = "&multiStatements=true"
+		args += "&multiStatements=true"
 	}
 	return fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=%s%s",
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort,
-		url.QueryEscape(c.Timezone.String()), extra,
+		url.QueryEscape(c.Timezone.String()), args,
 	)
 }
 
