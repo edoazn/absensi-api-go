@@ -9,8 +9,15 @@ export function AppLayout({ title, children }: { title: string; children: ReactN
       <AppSidebar />
       <SidebarInset>
         <AppHeader title={title} />
-        <main className="flex-1 space-y-4 p-4 md:p-6">{children}</main>
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 lg:px-6">
+            <main className="flex-1 space-y-4 px-4 lg:px-0">
+              {children}
+            </main>
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
 }
+

@@ -30,20 +30,20 @@ const items = [
   { title: "Absensi", to: "/attendances", icon: ClipboardCheck },
 ]
 
-export function AppSidebar() {
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar>
+    <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <ClipboardCheck className="size-4" />
                 </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Absensi</span>
-                  <span className="text-xs text-muted-foreground">Panel Admin</span>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Absensi</span>
+                  <span className="truncate text-xs text-muted-foreground">Panel Admin</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -52,23 +52,21 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.to}>
-                  <NavLink to={item.to} end={item.to === "/"}>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} tooltip={item.title}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
+          <SidebarMenu>
+            {items.map((item) => (
+              <SidebarMenuItem key={item.to}>
+                <NavLink to={item.to} end={item.to === "/"}>
+                  {({ isActive }) => (
+                    <SidebarMenuButton isActive={isActive} tooltip={item.title}>
+                      <item.icon className="size-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
